@@ -6,91 +6,58 @@
   <title>UM FSSS 3D Smart Campus Map & Voice Navigator</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-    body, html { width: 100%; height: 100%; overflow: hidden; background: #0f172a; }
+    body, html { width: 100%; height: 100%; overflow: hidden; background: #0f172a; color: #fff; }
 
-    /* Fullscreen Embedded Mappedin 3D Map */
-    #map-frame {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      border: none;
-      z-index: 1;
+    .top-bar {
+      position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.96); padding: 8px 18px; border-radius: 30px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 100;
+      display: flex; align-items: center; gap: 12px; white-space: nowrap;
+      color: #1e3a8a; font-weight: 700; font-size: 13px;
+    }
+    .mappedin-btn {
+      background: #10b981; color: #fff; text-decoration: none;
+      padding: 5px 12px; border-radius: 15px; font-size: 12px; font-weight: 700;
     }
 
-    /* Top Title Bar */
-    .header-badge {
-      position: fixed;
-      top: 14px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(255, 255, 255, 0.96);
-      padding: 8px 18px;
-      border-radius: 30px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
-      z-index: 9999;
-      font-weight: 700;
-      color: #1e3a8a;
-      font-size: 13px;
-      white-space: nowrap;
-      pointer-events: none;
+    .map-viewport {
+      position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+      background: radial-gradient(circle at center, #1e293b 0%, #090d16 100%);
+      padding-bottom: 190px;
     }
+    svg#campus-3d {
+      width: 96%; max-width: 820px; height: auto; max-height: 62vh;
+      filter: drop-shadow(0 20px 30px rgba(0,0,0,0.6));
+    }
+    .bldg { cursor: pointer; transition: opacity 0.2s; }
+    .bldg:hover { opacity: 0.85; }
+    .bldg-label { font-size: 11px; font-weight: 700; fill: #ffffff; pointer-events: none; text-anchor: middle; }
+    .bldg-sub { font-size: 8.5px; fill: #cbd5e1; pointer-events: none; text-anchor: middle; }
+    .route-line {
+      fill: none; stroke: #38bdf8; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round;
+      stroke-dasharray: 10 8; animation: dashMove 1s linear infinite;
+    }
+    @keyframes dashMove { to { stroke-dashoffset: -18; } }
 
-    /* Floating Voice Assistant Panel */
     .voice-assistant {
-      position: fixed;
-      bottom: 18px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 94%;
-      max-width: 560px;
-      background: rgba(255, 255, 255, 0.98);
-      border-radius: 20px;
-      padding: 14px 16px;
-      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.3);
-      z-index: 9999;
-      border: 1px solid #cbd5e1;
-      color: #1e293b;
+      position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+      width: 94%; max-width: 580px; background: rgba(255, 255, 255, 0.98);
+      border-radius: 20px; padding: 14px 16px; box-shadow: 0 10px 35px rgba(0,0,0,0.4);
+      z-index: 100; border: 1px solid #cbd5e1; color: #1e293b;
     }
-
-    .quick-chips {
-      display: flex;
-      gap: 6px;
-      overflow-x: auto;
-      padding-bottom: 8px;
-      margin-bottom: 8px;
-      border-bottom: 1px solid #e2e8f0;
-    }
-
+    .quick-chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; }
     .chip-btn {
-      background: #eff6ff;
-      color: #1d4ed8;
-      border: 1px solid #bfdbfe;
-      border-radius: 16px;
-      padding: 5px 11px;
-      font-size: 12px;
-      font-weight: 600;
-      white-space: nowrap;
-      cursor: pointer;
+      background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;
+      border-radius: 16px; padding: 5px 11px; font-size: 12px; font-weight: 600;
+      white-space: nowrap; cursor: pointer;
     }
     .chip-btn:hover { background: #2563eb; color: #fff; }
-
-    .chat-display {
-      font-size: 13px;
-      color: #1e293b;
-      margin-bottom: 10px;
-      min-height: 48px;
-      max-height: 140px;
-      overflow-y: auto;
-      line-height: 1.5;
-    }
-
-    .user-msg { color: #2563eb; font-weight: 600; margin-bottom: 4px; font-size: 12.5px; }
-    .bot-msg { background: #f8fafc; border-left: 3.5px solid #1e3a8a; padding: 8px 10px; border-radius: 0 8px 8px 0; }
-    .step-list { margin-top: 5px; padding-left: 18px; }
+    .chat-display { font-size: 13px; color: #1e293b; margin-bottom: 10px; min-height: 48px; max-height: 125px; overflow-y: auto; line-height: 1.45; }
+    .user-msg { color: #2563eb; font-weight: 600; margin-bottom: 3px; font-size: 12px; }
+    .bot-msg { background: #f8fafc; border-left: 3.5px solid #1e3a8a; padding: 7px 10px; border-radius: 0 8px 8px 0; }
+    .step-list { margin-top: 4px; padding-left: 18px; }
     .audio-controls { display: flex; gap: 8px; margin-top: 6px; }
-    .mini-btn { background: #e2e8f0; border: none; border-radius: 6px; padding: 4px 9px; font-size: 11.5px; font-weight: 600; cursor: pointer; }
-
+    .mini-btn { background: #e2e8f0; border: none; border-radius: 6px; padding: 4px 9px; font-size: 11px; font-weight: 600; cursor: pointer; }
     .controls { display: flex; gap: 8px; }
     #text-input { flex: 1; padding: 9px 12px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 13.5px; outline: none; }
     .action-btn { border: none; border-radius: 10px; padding: 9px 14px; font-size: 13.5px; font-weight: 600; cursor: pointer; color: #fff; }
@@ -101,12 +68,78 @@
 </head>
 <body>
 
-  <div class="header-badge">🏛️ UM FSSS 3D Interactive Map & AI Voice Navigator</div>
+  <div class="top-bar">
+    <span>🏛️ UM FSSS 3D Campus Map</span>
+    <a class="mappedin-btn" href="https://mappedin.com" target="_blank" rel="noopener">↗ Open Mappedin 3D</a>
+  </div>
 
-  <!-- Live Embedded Mappedin 3D Map -->
-  <iframe id="map-frame" src="https://mappedin.com" allow="geolocation; microphone; clipboard-write"></iframe>
+  <div class="map-viewport">
+    <svg id="campus-3d" viewBox="0 0 800 440">
+      <polygon points="60,80 740,80 770,380 30,380" fill="#1e293b" stroke="#334155" stroke-width="3" rx="16" />
+      <path d="M 150,230 L 660,230 M 320,120 L 320,330 M 520,120 L 520,330" stroke="#475569" stroke-width="14" stroke-linecap="round" />
 
-  <!-- Smart Voice & Text Navigator -->
+      <g class="bldg" onclick="askBot('Anjung Ilmu')">
+        <ellipse cx="120" cy="240" rx="58" ry="46" fill="#4f46e5" />
+        <ellipse cx="120" cy="226" rx="58" ry="46" fill="#6366f1" stroke="#a5b4fc" stroke-width="2" />
+        <text x="120" y="223" class="bldg-label">I 08 Anjung Ilmu</text>
+        <text x="120" y="236" class="bldg-sub">Media / Auditorium</text>
+      </g>
+
+      <g class="bldg" onclick="askBot('DKF')">
+        <rect x="220" y="105" width="90" height="55" rx="8" fill="#0284c7" />
+        <rect x="220" y="95" width="90" height="55" rx="8" fill="#0ea5e9" stroke="#bae6fd" stroke-width="2" />
+        <text x="265" y="120" class="bldg-label">I 03 DKF</text>
+        <text x="265" y="133" class="bldg-sub">Lecture Hall F</text>
+      </g>
+
+      <g class="bldg" onclick="askBot('Siswarama')">
+        <rect x="340" y="100" width="230" height="58" rx="8" fill="#0d9488" />
+        <rect x="340" y="90" width="230" height="58" rx="8" fill="#14b8a6" stroke="#99f6e4" stroke-width="2" />
+        <text x="455" y="116" class="bldg-label">I 01 Bangunan Siswarama</text>
+        <text x="455" y="130" class="bldg-sub">East Asian / Computer Lab</text>
+      </g>
+
+      <g class="bldg" onclick="askBot('Bilik Cube')">
+        <rect x="210" y="265" width="115" height="75" rx="8" fill="#7c3aed" />
+        <rect x="210" y="253" width="115" height="75" rx="8" fill="#8b5cf6" stroke="#ddd6fe" stroke-width="2" />
+        <text x="267" y="286" class="bldg-label">I 04 3 Dimensi</text>
+        <text x="267" y="300" class="bldg-sub">Chinese / Bilik Cube</text>
+      </g>
+
+      <g class="bldg" onclick="askBot('Sejarah')">
+        <rect x="365" y="190" width="125" height="55" rx="8" fill="#d97706" />
+        <rect x="365" y="180" width="125" height="55" rx="8" fill="#f59e0b" stroke="#fde68a" stroke-width="2" />
+        <text x="427" y="205" class="bldg-label">I 02 Sejarah</text>
+        <text x="427" y="218" class="bldg-sub">History Dept</text>
+      </g>
+
+      <g class="bldg" onclick="askBot('Dean Office')">
+        <rect x="355" y="285" width="195" height="65" rx="8" fill="#dc2626" />
+        <rect x="355" y="273" width="195" height="65" rx="8" fill="#ef4444" stroke="#fecaca" stroke-width="2" />
+        <text x="452" y="302" class="bldg-label">I 05 Pentadbiran</text>
+        <text x="452" y="316" class="bldg-sub">Dean's Office / Geography</text>
+      </g>
+
+      <g class="bldg" onclick="askBot('DKD')">
+        <rect x="535" y="185" width="95" height="55" rx="8" fill="#0284c7" />
+        <rect x="535" y="175" width="95" height="55" rx="8" fill="#0ea5e9" stroke="#bae6fd" stroke-width="2" />
+        <text x="582" y="200" class="bldg-label">I 06 DKD/E</text>
+        <text x="582" y="213" class="bldg-sub">Lecture Halls</text>
+      </g>
+
+      <g class="bldg" onclick="askBot('DKA')">
+        <rect x="645" y="150" width="85" height="150" rx="8" fill="#2563eb" />
+        <rect x="645" y="138" width="85" height="150" rx="8" fill="#3b82f6" stroke="#bfdbfe" stroke-width="2" />
+        <text x="687" y="210" class="bldg-label">I 07</text>
+        <text x="687" y="224" class="bldg-sub">DKA / B / C</text>
+      </g>
+
+      <path id="nav-path" class="route-line" d="M 452,355 L 452,230 L 178,230" />
+      <circle cx="452" cy="355" r="7" fill="#22c55e" stroke="#fff" stroke-width="2" />
+      <circle id="dest-pin" cx="178" cy="230" r="8" fill="#f43f5e" stroke="#fff" stroke-width="2" />
+    </svg>
+  </div>
+
   <div class="voice-assistant">
     <div class="quick-chips">
       <button type="button" class="chip-btn" onclick="askBot('Dean Office')">🏛️ Dean's Office</button>
@@ -118,7 +151,7 @@
     </div>
 
     <div class="chat-display" id="chat-display">
-      <div class="bot-msg">👋 <b>Welcome to FSSS Smart Navigator!</b> Tap a quick button, type a location, or click <b>🎤 Speak</b> for voice directions.</div>
+      <div class="bot-msg">👋 <b>Tap any 3D building above</b> or ask below! The blue route line and voice guide will lead you there.</div>
     </div>
 
     <div class="controls">
@@ -141,52 +174,15 @@
         window.speechSynthesis.speak(m);
       }
     }
+    function stopText() { if ("speechSynthesis" in window) window.speechSynthesis.cancel(); }
+    function replayText() { if (lastSpoken) speakText(lastSpoken); }
 
-    function stopText() {
-      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
-    }
-
-    function replayText() {
-      if (lastSpoken) speakText(lastSpoken);
+    function updateMapRoute(pathD, destX, destY) {
+      var p = document.getElementById("nav-path");
+      var d = document.getElementById("dest-pin");
+      if (p) p.setAttribute("d", pathD);
+      if (d) { d.setAttribute("cx", destX); d.setAttribute("cy", destY); }
     }
 
     function getLoc(q) {
       if (q.includes("pentadbiran") || q.includes("admin") || q.includes("dean") || q.includes("dekan") || q.includes("i05") || q.includes("geography") || q.includes("english"))
-        return { n: "I 05 - Bangunan Pentadbiran", d: "Houses Dean's Office, Geography, English & Meeting Room 1.", s1: "Start from FSSS central walkway.", s2: "Head south past Bangunan Sejarah.", s3: "Enter Building I 05 on the south side." };
-      if (q.includes("siswarama") || q.includes("i01") || q.includes("east asian") || q.includes("computer") || q.includes("makmal") || q.includes("enrichment"))
-        return { n: "I 01 - Bangunan Siswarama", d: "Houses East Asian Studies, Computer Lab & Bilik Enrichment.", s1: "Walk north past DKF and Bangunan Sejarah.", s2: "Follow the covered walkway.", s3: "Arrive at the long northern block I 01." };
-      if (q.includes("dimensi") || q.includes("i04") || q.includes("chinese") || q.includes("cina") || q.includes("indian") || q.includes("southeast") || q.includes("cube"))
-        return { n: "I 04 - Bangunan 3 Dimensi & Bilik Cube", d: "Houses Chinese, Indian, Southeast Asian Studies & Bilik Cube.", s1: "Turn west from the central courtyard towards Bangunan Citra.", s2: "Locate multi-wing block I 04.", s3: "Bilik Cube is beside the southern wing of I 04." };
-      if (q.includes("anjung") || q.includes("i08") || q.includes("media") || q.includes("anthropology") || q.includes("social") || q.includes("international") || q.includes("library") || q.includes("gender") || q.includes("auditorium"))
-        return { n: "I 08 - Bangunan Anjung Ilmu", d: "Houses Media, Anthropology, Social Admin, International Studies & Auditorium.", s1: "Head west past Bangunan 3 Dimensi.", s2: "Cross the pedestrian bridge past Bangunan Citra.", s3: "Reach the circular building Anjung Ilmu at the far west." };
-      if (q.includes("sejarah") || q.includes("history") || q.includes("i02"))
-        return { n: "I 02 - Bangunan Sejarah", d: "Houses Department of History & Dean's Meeting Room 2.", s1: "Walk into the center courtyard of FSSS.", s2: "Building I 02 sits right in the middle.", s3: "Enter through the central courtyard doors." };
-      if (q.includes("dkf") || q.includes("i03"))
-        return { n: "I 03 - Dewan Kuliah F (DKF)", d: "Northwest lecture hall.", s1: "Walk to the northwest corner between Siswarama and 3 Dimensi.", s2: "Look for the DKF entrance.", s3: "Enter Lecture Hall F on the ground level." };
-      if (q.includes("dkd") || q.includes("dke") || q.includes("i06"))
-        return { n: "I 06 - Dewan Kuliah D & E", d: "Center-east lecture halls DKD and DKE.", s1: "From Bangunan Sejarah, walk east into the inner courtyard.", s2: "Locate the center-east wing.", s3: "Follow the corridor signs for DKD or DKE." };
-      if (q.includes("dka") || q.includes("dkb") || q.includes("dkc") || q.includes("i07") || q.includes("lecture"))
-        return { n: "I 07 - Dewan Kuliah A, B & C", d: "Eastern wing lecture halls DKA, DKB, DKC.", s1: "Head towards the eastern side near main visitor parking.", s2: "Follow the eastern corridor along Building I 07.", s3: "DKA, DKB, and DKC are along this wing." };
-      if (q.includes("parking") || q.includes("car"))
-        return { n: "Tempat Letak Kereta (Parking)", d: "Staff and visitor parking zones.", s1: "North-East Parking: Next to Bangunan Siswarama (I 01).", s2: "South-East Parking: Next to Bangunan Pentadbiran (I 05).", s3: "Follow the campus ring road signs." };
-      return null;
-    }
-
-    function askBot(q) {
-      if (!q || !q.trim()) return;
-      var box = document.getElementById("chat-display");
-      var info = getLoc(q.toLowerCase());
-      if (info) {
-        var v = "Navigating to " + info.n + ". " + info.d + " Step 1: " + info.s1 + " Step 2: " + info.s2 + " Step 3: " + info.s3;
-        var li = "<li><b>Step 1:</b> " + info.s1 + "</li><li><b>Step 2:</b> " + info.s2 + "</li><li><b>Step 3:</b> " + info.s3 + "</li>";
-        box.innerHTML = '<div class="user-msg">🗣️ You: "' + q + '"</div><div class="bot-msg"><div>📍 <b>' + info.n + '</b></div><div>' + info.d + '</div><ol class="step-list">' + li + '</ol><div class="audio-controls"><button type="button" class="mini-btn" onclick="replayText()">🔊 Replay</button><button type="button" class="mini-btn" onclick="stopText()">⏹️ Stop</button></div></div>';
-        speakText(v);
-      } else {
-        var fb = "Try asking for Dean's Office, Chinese Studies, Computer Lab, Anjung Ilmu, Bilik Cube, or DKA.";
-        box.innerHTML = '<div class="user-msg">🗣️ You: "' + q + '"</div><div class="bot-msg">🤔 ' + fb + '</div>';
-        speakText(fb);
-      }
-      box.scrollTop = box.scrollHeight;
-    }
-
-    function sendInput() {
