@@ -27,7 +27,7 @@
       padding: 9px 20px;
       border-radius: 30px;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-      z-index: 100;
+      z-index: 9999;
       font-weight: 700;
       color: #1e3a8a;
       font-size: 14px;
@@ -46,7 +46,7 @@
       border-radius: 22px;
       padding: 16px 18px;
       box-shadow: 0 10px 35px rgba(0, 0, 0, 0.28);
-      z-index: 100;
+      z-index: 9999;
       border: 1px solid #cbd5e1;
     }
 
@@ -151,12 +151,12 @@
 
   <div class="voice-assistant">
     <div class="quick-chips">
-      <button type="button" class="chip-btn" data-query="Guide me to Dean Office">🏛️ Dean's Office</button>
-      <button type="button" class="chip-btn" data-query="Where is Chinese Studies">🇨🇳 Chinese Studies</button>
-      <button type="button" class="chip-btn" data-query="Take me to Makmal Komputer">💻 Computer Lab</button>
-      <button type="button" class="chip-btn" data-query="Where is Anjung Ilmu">🎬 Anjung Ilmu</button>
-      <button type="button" class="chip-btn" data-query="How to go to DKA">🎓 DKA / DKB / DKC</button>
-      <button type="button" class="chip-btn" data-query="Take me to the cube">🧊 Bilik Cube</button>
+      <button type="button" class="chip-btn" onclick="askBot('Dean Office')">🏛️ Dean's Office</button>
+      <button type="button" class="chip-btn" onclick="askBot('Chinese Studies')">🇨🇳 Chinese Studies</button>
+      <button type="button" class="chip-btn" onclick="askBot('Makmal Komputer')">💻 Computer Lab</button>
+      <button type="button" class="chip-btn" onclick="askBot('Anjung Ilmu')">🎬 Anjung Ilmu</button>
+      <button type="button" class="chip-btn" onclick="askBot('DKA')">🎓 DKA / DKB / DKC</button>
+      <button type="button" class="chip-btn" onclick="askBot('Bilik Cube')">🧊 Bilik Cube</button>
     </div>
 
     <div class="chat-display" id="chat-display">
@@ -166,76 +166,90 @@
     </div>
 
     <div class="controls">
-      <input type="text" id="text-input" placeholder="Ask e.g. 'Take me to the cube' or 'DKA'..." />
-      <button type="button" class="action-btn" id="send-btn">Ask</button>
-      <button type="button" class="action-btn" id="mic-btn">🎤 Speak</button>
+      <input type="text" id="text-input" placeholder="Ask e.g. 'Take me to the cube' or 'DKA'..." onkeydown="if(event.key==='Enter') sendInput()" />
+      <button type="button" class="action-btn" id="send-btn" onclick="sendInput()">Ask</button>
+      <button type="button" class="action-btn" id="mic-btn" onclick="startVoice()">🎤 Speak</button>
     </div>
   </div>
 
   <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      var lastSpokenScript = "";
-      var chatDisplay = document.getElementById("chat-display");
-      var textInput = document.getElementById("text-input");
-      var sendBtn = document.getElementById("send-btn");
-      var micBtn = document.getElementById("mic-btn");
+    var lastSpoken = "";
 
-      var fsssDatabase = new Array(
-        {
+    function speakText(text) {
+      lastSpoken = text;
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+        var msg = new SpeechSynthesisUtterance(text);
+        msg.lang = "en-US";
+        msg.rate = 0.98;
+        window.speechSynthesis.speak(msg);
+      }
+    }
+
+    function stopText() {
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    }
+
+    function replayText() {
+      if (lastSpoken) {
+        speakText(lastSpoken);
+      }
+    }
+
+    function getLocationInfo(q) {
+      if (q.includes("pentadbiran") || q.includes("admin") || q.includes("dean") || q.includes("dekan") || q.includes("i05") || q.includes("i 05") || q.includes("geography") || q.includes("geografi") || q.includes("english") || q.includes("inggeris")) {
+        return {
           name: "I 05 - Bangunan Pentadbiran (Dean's Office, Geography, English)",
-          keywords: "pentadbiran,admin,dean,dekan,i05,i 05,geography,geografi,english,inggeris,meeting room 1",
-          summary: "Bangunan Pentadbiran (Building I 05) houses the Dean's Office, Department of Geography, Department of English, and Dean's Meeting Room 1.",
-          steps: "Start from the main FSSS central entrance walkway.|Head south past the central courtyard (Bangunan Sejarah).|Enter the main administrative block (I 05) directly on your south side."
-        },
-        {
+          summary: "Bangunan Pentadbiran (I 05) houses the Dean's Office, Department of Geography, Department of English, and Dean's Meeting Room 1.",
+          s1: "Start from the main FSSS central entrance walkway.",
+          s2: "Head south past the central courtyard (Bangunan Sejarah).",
+          s3: "Enter the main administrative block (I 05) directly on your south side."
+        };
+      }
+      if (q.includes("siswarama") || q.includes("i01") || q.includes("i 01") || q.includes("east asian") || q.includes("asia timur") || q.includes("computer") || q.includes("makmal") || q.includes("enrichment")) {
+        return {
           name: "I 01 - Bangunan Siswarama (East Asian Studies & Computer Lab)",
-          keywords: "siswarama,i01,i 01,east asian,asia timur,computer lab,makmal komputer,enrichment",
-          summary: "Bangunan Siswarama (Building I 01) contains the Department of East Asian Studies, Computer Lab (Makmal Komputer), and Bilik Enrichment.",
-          steps: "Walk towards the northern side of the FSSS complex.|Follow the covered walkway north past Dewan Kuliah F (DKF) and Bangunan Sejarah.|You will arrive at the long northern block, Bangunan Siswarama (I 01)."
-        },
-        {
+          summary: "Bangunan Siswarama (I 01) contains the Department of East Asian Studies, Computer Lab (Makmal Komputer), and Bilik Enrichment.",
+          s1: "Walk towards the northern side of the FSSS complex.",
+          s2: "Follow the covered walkway north past Dewan Kuliah F (DKF) and Bangunan Sejarah.",
+          s3: "Arrive at the long northern block, Bangunan Siswarama (I 01)."
+        };
+      }
+      if (q.includes("3 dimensi") || q.includes("i04") || q.includes("i 04") || q.includes("southeast") || q.includes("asia tenggara") || q.includes("chinese") || q.includes("cina") || q.includes("indian") || q.includes("india") || q.includes("cube")) {
+        return {
           name: "I 04 - Bangunan 3 Dimensi & Bilik Cube (Chinese, Indian, Southeast Asian Studies)",
-          keywords: "3 dimensi,i04,i 04,southeast asian,asia tenggara,chinese,cina,indian,india,cube,bilik cube",
           summary: "Bangunan 3 Dimensi (I 04) houses Southeast Asian, Chinese, and Indian Studies, with Bilik Cube located right beside its southern wing.",
-          steps: "From the central FSSS courtyard, turn west towards the walkway linking to Bangunan Citra.|Look for the multi-wing block on the western side labeled I 04.|Bilik Cube is situated right next to the southern wing of Bangunan 3 Dimensi."
-        },
-        {
+          s1: "From the central FSSS courtyard, turn west towards the walkway linking to Bangunan Citra.",
+          s2: "Look for the multi-wing block on the western side labeled I 04.",
+          s3: "Bilik Cube is situated right next to the southern wing of Bangunan 3 Dimensi."
+        };
+      }
+      if (q.includes("anjung") || q.includes("i08") || q.includes("i 08") || q.includes("media") || q.includes("komunikasi") || q.includes("anthropology") || q.includes("antropologi") || q.includes("social") || q.includes("international") || q.includes("strategik") || q.includes("library") || q.includes("gender") || q.includes("auditorium")) {
+        return {
           name: "I 08 - Bangunan Anjung Ilmu (Media, Anthropology, International Studies & Auditorium)",
-          keywords: "anjung ilmu,i08,i 08,media,komunikasi,anthropology,antropologi,social administration,international,strategik,library,gender,auditorium",
-          summary: "Bangunan Anjung Ilmu (I 08) houses Media & Communication, Anthropology & Sociology, Social Administration, International Studies, Library Science, Gender Studies, and the main Auditorium.",
-          steps: "Head west past Bangunan 3 Dimensi (I 04).|Continue straight along the covered pedestrian bridge passing Bangunan Citra.|You will reach the distinctive circular building at the far west end: Anjung Ilmu (I 08)."
-        },
-        {
+          summary: "Bangunan Anjung Ilmu (I 08) houses Media & Communication, Anthropology & Sociology, Social Administration, International Studies, Library Science, Gender Studies, and the Auditorium.",
+          s1: "Head west past Bangunan 3 Dimensi (I 04).",
+          s2: "Continue straight along the covered pedestrian bridge passing Bangunan Citra.",
+          s3: "You will reach the circular building at the far west end: Anjung Ilmu (I 08)."
+        };
+      }
+      if (q.includes("sejarah") || q.includes("history") || q.includes("i02") || q.includes("i 02")) {
+        return {
           name: "I 02 - Bangunan Sejarah (History Department & Meeting Room 2)",
-          keywords: "sejarah,history,i02,i 02,meeting room 2",
-          summary: "Bangunan Sejarah (Building I 02) includes the Department of History and Dean's Meeting Room 2.",
-          steps: "Walk into the center courtyard of the FSSS main complex.|Building I 02 sits right in the middle between Bangunan Siswarama (north) and Bangunan Pentadbiran (south)."
-        },
-        {
+          summary: "Bangunan Sejarah (I 02) includes the Department of History and Dean's Meeting Room 2.",
+          s1: "Walk into the center courtyard of the FSSS main complex.",
+          s2: "Building I 02 sits right in the middle between Bangunan Siswarama and Bangunan Pentadbiran.",
+          s3: "Enter through the central courtyard doors."
+        };
+      }
+      if (q.includes("dkf") || q.includes("dk f") || q.includes("dewan kuliah f") || q.includes("i03") || q.includes("i 03")) {
+        return {
           name: "I 03 - Dewan Kuliah F (DKF)",
-          keywords: "dkf,dk f,dewan kuliah f,i03,i 03",
           summary: "Dewan Kuliah F (DKF / I 03) is the northwest lecture hall.",
-          steps: "Walk towards the northwest corner of the main FSSS block.|DKF is located right between Bangunan Siswarama and Bangunan 3 Dimensi."
-        },
-        {
-          name: "I 06 - Dewan Kuliah D & E (DKD / DKE)",
-          keywords: "dkd,dke,dk d,dk e,i06,i 06",
-          summary: "Building I 06 contains Lecture Halls D (DKD) and E (DKE).",
-          steps: "From Bangunan Sejarah in the center, walk east towards the inner courtyard.|DKD and DKE are situated side-by-side in the center-east wing."
-        },
-        {
-          name: "I 07 - Dewan Kuliah A, B & C (DKA / DKB / DKC)",
-          keywords: "dka,dkb,dkc,dk a,dk b,dk c,i07,i 07,lecture hall a,lecture hall b,lecture hall c",
-          summary: "Building I 07 houses Lecture Halls A, B, and C.",
-          steps: "Head towards the eastern side of FSSS near the main visitor parking area.|Follow the eastern corridor to find DKA, DKB, and DKC in Building I 07."
-        },
-        {
-          name: "Parking Areas (Tempat Letak Kereta)",
-          keywords: "parking,letak kereta,car,park",
-          summary: "FSSS has two main parking zones for staff and visitors.",
-          steps: "North-East Parking: Located right next to Bangunan Siswarama (I 01).|South-East Parking: Located next to Bangunan Pentadbiran (I 05) and DKB."
-        }
-      );
-
-      function findBestMatch(query) {
-        var q = query.toLowerCase().trim();
+          s1: "Walk towards the northwest corner of the main FSSS block.",
+          s2: "DKF is located right between Bangunan Siswarama and Bangunan 3 Dimensi.",
+          s3: "Enter Lecture Hall F on the ground level."
+        };
+      }
