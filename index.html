@@ -3,150 +3,32 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>UM FSSS 3D Smart Campus Map & Voice Guide</title>
+  <title>UM FSSS 3D Smart Map & Voice Guide</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-    body, html { width: 100%; height: 100%; overflow: hidden; background: #0f172a; }
-
-    #map-frame {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      border: none;
-      z-index: 1;
-    }
-
-    .header-badge {
-      position: fixed;
-      top: 14px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(255, 255, 255, 0.96);
-      padding: 9px 20px;
-      border-radius: 30px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-      z-index: 9999;
-      font-weight: 700;
-      color: #1e3a8a;
-      font-size: 14px;
-      pointer-events: none;
-      white-space: nowrap;
-    }
-
-    .voice-assistant {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 94%;
-      max-width: 580px;
-      background: rgba(255, 255, 255, 0.98);
-      border-radius: 22px;
-      padding: 16px 18px;
-      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.28);
-      z-index: 9999;
-      border: 1px solid #cbd5e1;
-    }
-
-    .quick-chips {
-      display: flex;
-      gap: 6px;
-      overflow-x: auto;
-      padding-bottom: 10px;
-      margin-bottom: 10px;
-      border-bottom: 1px solid #e2e8f0;
-    }
-
-    .chip-btn {
-      background: #eff6ff;
-      color: #1d4ed8;
-      border: 1px solid #bfdbfe;
-      border-radius: 16px;
-      padding: 6px 12px;
-      font-size: 12px;
-      font-weight: 600;
-      white-space: nowrap;
-      cursor: pointer;
-    }
-    .chip-btn:hover { background: #2563eb; color: #ffffff; }
-
-    .chat-display {
-      font-size: 13.5px;
-      color: #1e293b;
-      margin-bottom: 12px;
-      min-height: 56px;
-      max-height: 150px;
-      overflow-y: auto;
-      line-height: 1.55;
-      padding-right: 4px;
-    }
-
-    .user-msg { color: #2563eb; font-weight: 600; margin-bottom: 6px; font-size: 13px; }
-    .bot-msg {
-      background: #f8fafc;
-      border-left: 3.5px solid #1e3a8a;
-      padding: 8px 12px;
-      border-radius: 0 10px 10px 0;
-    }
-
-    .step-list { margin-top: 6px; padding-left: 18px; color: #334155; }
-    .step-list li { margin-bottom: 3px; }
-
-    .audio-controls { display: flex; gap: 8px; margin-top: 8px; }
-    .mini-btn {
-      background: #e2e8f0;
-      color: #0f172a;
-      border: none;
-      border-radius: 8px;
-      padding: 4px 10px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .mini-btn:hover { background: #cbd5e1; }
-
-    .controls { display: flex; gap: 8px; align-items: center; }
-
-    #text-input {
-      flex: 1;
-      padding: 10px 14px;
-      border: 1.5px solid #cbd5e1;
-      border-radius: 12px;
-      font-size: 14px;
-      outline: none;
-    }
-
-    .action-btn {
-      border: none;
-      border-radius: 12px;
-      padding: 10px 15px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    #send-btn { background: #1e3a8a; color: white; }
-    #send-btn:hover { background: #1d4ed8; }
-
-    #mic-btn {
-      background: #dc2626;
-      color: white;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
+    body, html { width: 100%; height: 100%; overflow: hidden; }
+    #map-frame { position: fixed; inset: 0; width: 100%; height: 100%; border: none; z-index: 1; }
+    .header-badge { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.96); padding: 8px 18px; border-radius: 30px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); z-index: 9999; font-weight: 700; color: #1e3a8a; font-size: 13px; pointer-events: none; white-space: nowrap; }
+    .voice-assistant { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); width: 94%; max-width: 560px; background: rgba(255,255,255,0.98); border-radius: 20px; padding: 14px 16px; box-shadow: 0 10px 35px rgba(0,0,0,0.28); z-index: 9999; border: 1px solid #cbd5e1; }
+    .quick-chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; }
+    .chip-btn { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; border-radius: 16px; padding: 5px 11px; font-size: 12px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+    .chip-btn:hover { background: #2563eb; color: #fff; }
+    .chat-display { font-size: 13px; color: #1e293b; margin-bottom: 10px; min-height: 48px; max-height: 140px; overflow-y: auto; line-height: 1.5; }
+    .user-msg { color: #2563eb; font-weight: 600; margin-bottom: 4px; font-size: 12.5px; }
+    .bot-msg { background: #f8fafc; border-left: 3.5px solid #1e3a8a; padding: 8px 10px; border-radius: 0 8px 8px 0; }
+    .step-list { margin-top: 5px; padding-left: 18px; }
+    .audio-controls { display: flex; gap: 8px; margin-top: 6px; }
+    .mini-btn { background: #e2e8f0; border: none; border-radius: 6px; padding: 4px 9px; font-size: 11.5px; font-weight: 600; cursor: pointer; }
+    .controls { display: flex; gap: 8px; }
+    #text-input { flex: 1; padding: 9px 12px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 13.5px; outline: none; }
+    .action-btn { border: none; border-radius: 10px; padding: 9px 14px; font-size: 13.5px; font-weight: 600; cursor: pointer; color: #fff; }
+    #send-btn { background: #1e3a8a; }
+    #mic-btn { background: #dc2626; }
     #mic-btn.listening { background: #16a34a; }
   </style>
 </head>
 <body>
-
-  <div class="header-badge">
-    🏛️ UM FSSS 3D Interactive Map & AI Voice Navigator
-  </div>
-
+  <div class="header-badge">🏛️ UM FSSS 3D Interactive Map & AI Voice Navigator</div>
   <iframe id="map-frame" src="https://app.mappedin.com/map/6afef583ca763e000cd6f91c/directions?location=s_c9b6b954a86df420&departure=s_f939e5e4db54181b+loc_cb0feae7d10c092e&floor=m_0cc910134c25291b" allow="geolocation; microphone"></iframe>
 
   <div class="voice-assistant">
@@ -158,15 +40,11 @@
       <button type="button" class="chip-btn" onclick="askBot('DKA')">🎓 DKA / DKB / DKC</button>
       <button type="button" class="chip-btn" onclick="askBot('Bilik Cube')">🧊 Bilik Cube</button>
     </div>
-
     <div class="chat-display" id="chat-display">
-      <div class="bot-msg">
-        👋 <b>Welcome to FSSS Smart Navigator!</b> Tap a quick button above, type a room/department, or click <b>🎤 Speak</b>. I will guide you step-by-step with voice!
-      </div>
+      <div class="bot-msg">👋 <b>Welcome to FSSS Smart Navigator!</b> Tap a quick button, type a location, or click <b>🎤 Speak</b> for voice directions.</div>
     </div>
-
     <div class="controls">
-      <input type="text" id="text-input" placeholder="Ask e.g. 'Take me to the cube' or 'DKA'..." onkeydown="if(event.key==='Enter') sendInput()" />
+      <input type="text" id="text-input" placeholder="Ask e.g. 'Bilik Cube' or 'DKA'..." onkeydown="if(event.key==='Enter') sendInput()" />
       <button type="button" class="action-btn" id="send-btn" onclick="sendInput()">Ask</button>
       <button type="button" class="action-btn" id="mic-btn" onclick="startVoice()">🎤 Speak</button>
     </div>
@@ -174,82 +52,73 @@
 
   <script>
     var lastSpoken = "";
-
-    function speakText(text) {
-      lastSpoken = text;
+    function speakText(t) {
+      lastSpoken = t;
       if ("speechSynthesis" in window) {
         window.speechSynthesis.cancel();
-        var msg = new SpeechSynthesisUtterance(text);
-        msg.lang = "en-US";
-        msg.rate = 0.98;
-        window.speechSynthesis.speak(msg);
+        var m = new SpeechSynthesisUtterance(t);
+        m.lang = "en-US";
+        window.speechSynthesis.speak(m);
       }
     }
+    function stopText() { if ("speechSynthesis" in window) window.speechSynthesis.cancel(); }
+    function replayText() { if (lastSpoken) speakText(lastSpoken); }
 
-    function stopText() {
-      if ("speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-      }
+    function getLoc(q) {
+      if (q.includes("pentadbiran") || q.includes("admin") || q.includes("dean") || q.includes("dekan") || q.includes("i05") || q.includes("geography") || q.includes("english"))
+        return { n: "I 05 - Bangunan Pentadbiran", d: "Houses Dean's Office, Geography, English & Meeting Room 1.", s: ["Start from FSSS central walkway.", "Head south past Bangunan Sejarah.", "Enter Building I 05 on the south side."] };
+      if (q.includes("siswarama") || q.includes("i01") || q.includes("east asian") || q.includes("computer") || q.includes("makmal") || q.includes("enrichment"))
+        return { n: "I 01 - Bangunan Siswarama", d: "Houses East Asian Studies, Computer Lab & Bilik Enrichment.", s: ["Walk north past DKF and Bangunan Sejarah.", "Follow the covered walkway.", "Arrive at the long northern block I 01."] };
+      if (q.includes("dimensi") || q.includes("i04") || q.includes("chinese") || q.includes("cina") || q.includes("indian") || q.includes("southeast") || q.includes("cube"))
+        return { n: "I 04 - Bangunan 3 Dimensi & Bilik Cube", d: "Houses Chinese, Indian, Southeast Asian Studies & Bilik Cube.", s: ["Turn west from the central courtyard towards Bangunan Citra.", "Locate multi-wing block I 04.", "Bilik Cube is beside the southern wing of I 04."] };
+      if (q.includes("anjung") || q.includes("i08") || q.includes("media") || q.includes("anthropology") || q.includes("social") || q.includes("international") || q.includes("library") || q.includes("gender") || q.includes("auditorium"))
+        return { n: "I 08 - Bangunan Anjung Ilmu", d: "Houses Media, Anthropology, Social Admin, International Studies & Auditorium.", s: ["Head west past Bangunan 3 Dimensi.", "Cross the pedestrian bridge past Bangunan Citra.", "Reach the circular building Anjung Ilmu at the far west."] };
+      if (q.includes("sejarah") || q.includes("history") || q.includes("i02"))
+        return { n: "I 02 - Bangunan Sejarah", d: "Houses Department of History & Dean's Meeting Room 2.", s: ["Walk into the center courtyard of FSSS.", "Building I 02 sits right in the middle."] };
+      if (q.includes("dkf") || q.includes("i03"))
+        return { n: "I 03 - Dewan Kuliah F (DKF)", d: "Northwest lecture hall.", s: ["Walk to the northwest corner between Siswarama and 3 Dimensi."] };
+      if (q.includes("dkd") || q.includes("dke") || q.includes("i06"))
+        return { n: "I 06 - Dewan Kuliah D & E", d: "Center-east lecture halls DKD and DKE.", s: ["From Bangunan Sejarah, walk east into the inner courtyard."] };
+      if (q.includes("dka") || q.includes("dkb") || q.includes("dkc") || q.includes("i07") || q.includes("lecture"))
+        return { n: "I 07 - Dewan Kuliah A, B & C", d: "Eastern wing lecture halls DKA, DKB, DKC.", s: ["Head towards the eastern side near main visitor parking."] };
+      if (q.includes("parking") || q.includes("car"))
+        return { n: "Tempat Letak Kereta (Parking)", d: "Staff and visitor parking zones.", s: ["Available on the North-East (next to I 01) and South-East (next to I 05)."] };
+      return null;
     }
 
-    function replayText() {
-      if (lastSpoken) {
-        speakText(lastSpoken);
+    function askBot(q) {
+      if (!q || !q.trim()) return;
+      var box = document.getElementById("chat-display");
+      var info = getLoc(q.toLowerCase());
+      if (info) {
+        var v = "Navigating to " + info.n + ". " + info.d + " Step 1: " + info.s.at(0) + " Step 2: " + info.s.at(1) + (info.s.at(2) ? " Step 3: " + info.s.at(2) : "");
+        var li = "<li><b>Step 1:</b> " + info.s.at(0) + "</li><li><b>Step 2:</b> " + info.s.at(1) + "</li>" + (info.s.at(2) ? "<li><b>Step 3:</b> " + info.s.at(2) + "</li>" : "");
+        box.innerHTML = '<div class="user-msg">🗣️ You: "' + q + '"</div><div class="bot-msg"><div>📍 <b>' + info.n + '</b></div><div>' + info.d + '</div><ol class="step-list">' + li + '</ol><div class="audio-controls"><button type="button" class="mini-btn" onclick="replayText()">🔊 Replay</button><button type="button" class="mini-btn" onclick="stopText()">⏹️ Stop</button></div></div>';
+        speakText(v);
+      } else {
+        var fb = "Try asking for Dean's Office, Chinese Studies, Computer Lab, Anjung Ilmu, Bilik Cube, or DKA.";
+        box.innerHTML = '<div class="user-msg">🗣️ You: "' + q + '"</div><div class="bot-msg">🤔 ' + fb + '</div>';
+        speakText(fb);
       }
+      box.scrollTop = box.scrollHeight;
     }
 
-    function getLocationInfo(q) {
-      if (q.includes("pentadbiran") || q.includes("admin") || q.includes("dean") || q.includes("dekan") || q.includes("i05") || q.includes("i 05") || q.includes("geography") || q.includes("geografi") || q.includes("english") || q.includes("inggeris")) {
-        return {
-          name: "I 05 - Bangunan Pentadbiran (Dean's Office, Geography, English)",
-          summary: "Bangunan Pentadbiran (I 05) houses the Dean's Office, Department of Geography, Department of English, and Dean's Meeting Room 1.",
-          s1: "Start from the main FSSS central entrance walkway.",
-          s2: "Head south past the central courtyard (Bangunan Sejarah).",
-          s3: "Enter the main administrative block (I 05) directly on your south side."
-        };
-      }
-      if (q.includes("siswarama") || q.includes("i01") || q.includes("i 01") || q.includes("east asian") || q.includes("asia timur") || q.includes("computer") || q.includes("makmal") || q.includes("enrichment")) {
-        return {
-          name: "I 01 - Bangunan Siswarama (East Asian Studies & Computer Lab)",
-          summary: "Bangunan Siswarama (I 01) contains the Department of East Asian Studies, Computer Lab (Makmal Komputer), and Bilik Enrichment.",
-          s1: "Walk towards the northern side of the FSSS complex.",
-          s2: "Follow the covered walkway north past Dewan Kuliah F (DKF) and Bangunan Sejarah.",
-          s3: "Arrive at the long northern block, Bangunan Siswarama (I 01)."
-        };
-      }
-      if (q.includes("3 dimensi") || q.includes("i04") || q.includes("i 04") || q.includes("southeast") || q.includes("asia tenggara") || q.includes("chinese") || q.includes("cina") || q.includes("indian") || q.includes("india") || q.includes("cube")) {
-        return {
-          name: "I 04 - Bangunan 3 Dimensi & Bilik Cube (Chinese, Indian, Southeast Asian Studies)",
-          summary: "Bangunan 3 Dimensi (I 04) houses Southeast Asian, Chinese, and Indian Studies, with Bilik Cube located right beside its southern wing.",
-          s1: "From the central FSSS courtyard, turn west towards the walkway linking to Bangunan Citra.",
-          s2: "Look for the multi-wing block on the western side labeled I 04.",
-          s3: "Bilik Cube is situated right next to the southern wing of Bangunan 3 Dimensi."
-        };
-      }
-      if (q.includes("anjung") || q.includes("i08") || q.includes("i 08") || q.includes("media") || q.includes("komunikasi") || q.includes("anthropology") || q.includes("antropologi") || q.includes("social") || q.includes("international") || q.includes("strategik") || q.includes("library") || q.includes("gender") || q.includes("auditorium")) {
-        return {
-          name: "I 08 - Bangunan Anjung Ilmu (Media, Anthropology, International Studies & Auditorium)",
-          summary: "Bangunan Anjung Ilmu (I 08) houses Media & Communication, Anthropology & Sociology, Social Administration, International Studies, Library Science, Gender Studies, and the Auditorium.",
-          s1: "Head west past Bangunan 3 Dimensi (I 04).",
-          s2: "Continue straight along the covered pedestrian bridge passing Bangunan Citra.",
-          s3: "You will reach the circular building at the far west end: Anjung Ilmu (I 08)."
-        };
-      }
-      if (q.includes("sejarah") || q.includes("history") || q.includes("i02") || q.includes("i 02")) {
-        return {
-          name: "I 02 - Bangunan Sejarah (History Department & Meeting Room 2)",
-          summary: "Bangunan Sejarah (I 02) includes the Department of History and Dean's Meeting Room 2.",
-          s1: "Walk into the center courtyard of the FSSS main complex.",
-          s2: "Building I 02 sits right in the middle between Bangunan Siswarama and Bangunan Pentadbiran.",
-          s3: "Enter through the central courtyard doors."
-        };
-      }
-      if (q.includes("dkf") || q.includes("dk f") || q.includes("dewan kuliah f") || q.includes("i03") || q.includes("i 03")) {
-        return {
-          name: "I 03 - Dewan Kuliah F (DKF)",
-          summary: "Dewan Kuliah F (DKF / I 03) is the northwest lecture hall.",
-          s1: "Walk towards the northwest corner of the main FSSS block.",
-          s2: "DKF is located right between Bangunan Siswarama and Bangunan 3 Dimensi.",
-          s3: "Enter Lecture Hall F on the ground level."
-        };
-      }
+    function sendInput() {
+      var i = document.getElementById("text-input");
+      var val = i.value;
+      i.value = "";
+      askBot(val);
+    }
+
+    function startVoice() {
+      var btn = document.getElementById("mic-btn");
+      var box = document.getElementById("chat-display");
+      var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) { box.innerHTML = '<div class="bot-msg">⚠️ Use Chrome for voice input.</div>'; return; }
+      stopText();
+      var r = new SR();
+      r.lang = "en-US";
+      r.onstart = function() { btn.classList.add("listening"); btn.textContent = "🛑 Listening..."; };
+      r.onresult = function(e) { askBot(e.results.item(0).item(0).transcript); };
+      r.onend = function() { btn.classList.remove("listening"); btn.textContent = "🎤 Speak"; };
+      r.onerror = function() { btn.classList.remove("listening"); btn.textContent = "🎤 Speak"; box.innerHTML = '<div class="bot-msg">⚠️ Allow Microphone permission in browser bar.</div>'; };
