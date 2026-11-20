@@ -3,186 +3,355 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>UM FSSS 3D Smart Campus Map & Voice Navigator</title>
+  <title>UM FSSS 3D Smart Campus Navigator</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-    body, html { width: 100%; height: 100%; overflow: hidden; background: #0f172a; color: #fff; }
+    body, html { width: 100%; height: 100%; overflow: hidden; background: radial-gradient(circle at center, #1e293b 0%, #060913 100%); color: #fff; user-select: none; }
 
-    .top-bar {
-      position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
-      background: rgba(255, 255, 255, 0.96); padding: 8px 18px; border-radius: 30px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 100;
-      display: flex; align-items: center; gap: 12px; white-space: nowrap;
-      color: #1e3a8a; font-weight: 700; font-size: 13px;
-    }
-    .mappedin-btn {
-      background: #10b981; color: #fff; text-decoration: none;
-      padding: 5px 12px; border-radius: 15px; font-size: 12px; font-weight: 700;
-    }
+    .top-bar { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.96); padding: 7px 14px; border-radius: 30px; box-shadow: 0 6px 24px rgba(0,0,0,0.35); z-index: 200; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: center; width: 95%; max-width: 760px; color: #1e3a8a; font-weight: 700; font-size: 12px; }
+    .floor-btn { border: 1.5px solid #0d9488; background: #f0fdfa; color: #0f766e; padding: 4px 10px; border-radius: 14px; font-size: 11px; font-weight: 700; cursor: pointer; }
+    .floor-btn.active { background: #0d9488; color: #fff; }
+    .lang-btn { border: 1.5px solid #2563eb; background: #eff6ff; color: #1d4ed8; padding: 4px 10px; border-radius: 14px; font-size: 11px; font-weight: 700; cursor: pointer; }
+    .lang-btn.active { background: #2563eb; color: #fff; }
+    #voice-select { max-width: 150px; padding: 4px 7px; border-radius: 12px; border: 1px solid #cbd5e1; font-size: 11px; color: #0f172a; outline: none; }
 
-    .map-viewport {
-      position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
-      background: radial-gradient(circle at center, #1e293b 0%, #090d16 100%);
-      padding-bottom: 190px;
-    }
-    svg#campus-3d {
-      width: 96%; max-width: 820px; height: auto; max-height: 62vh;
-      filter: drop-shadow(0 20px 30px rgba(0,0,0,0.6));
-    }
-    .bldg { cursor: pointer; transition: opacity 0.2s; }
-    .bldg:hover { opacity: 0.85; }
-    .bldg-label { font-size: 11px; font-weight: 700; fill: #ffffff; pointer-events: none; text-anchor: middle; }
-    .bldg-sub { font-size: 8.5px; fill: #cbd5e1; pointer-events: none; text-anchor: middle; }
-    .route-line {
-      fill: none; stroke: #38bdf8; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round;
-      stroke-dasharray: 10 8; animation: dashMove 1s linear infinite;
-    }
+    .route-panel { position: fixed; top: 64px; left: 16px; width: 250px; background: rgba(255,255,255,0.96); border-radius: 18px; padding: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.35); z-index: 150; color: #1e293b; border: 1px solid #cbd5e1; }
+    .route-panel h4 { font-size: 13px; color: #1e3a8a; margin-bottom: 10px; }
+    .sel-group { margin-bottom: 8px; }
+    .sel-group label { display: block; font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 3px; }
+    .sel-group select { width: 100%; padding: 7px 9px; border-radius: 10px; border: 1.5px solid #cbd5e1; font-size: 12px; font-weight: 600; color: #0f172a; outline: none; background: #f8fafc; }
+    .go-btn { width: 100%; background: #10b981; color: #fff; border: none; border-radius: 10px; padding: 8px; font-size: 12.5px; font-weight: 700; cursor: pointer; margin-top: 4px; }
+    .go-btn:hover { background: #059669; }
+    .drag-hint { font-size: 10.5px; color: #64748b; text-align: center; margin-top: 8px; }
+
+    .scene-container { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; perspective: 1100px; cursor: grab; }
+    .scene-container:active { cursor: grabbing; }
+    .map-3d-board { width: 860px; height: 440px; transform-style: preserve-3d; transform: rotateX(48deg) rotateZ(-12deg); transition: transform 0.08s ease-out; position: relative; }
+    svg#campus-svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 28px 25px rgba(0,0,0,0.75)); }
+    .bldg { cursor: pointer; transition: filter 0.2s; }
+    .bldg:hover { filter: brightness(1.18); }
+    .bldg-title { font-size: 11px; font-weight: 800; fill: #ffffff; pointer-events: none; text-anchor: middle; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
+    .bldg-room { font-size: 8.5px; font-weight: 700; fill: #fef08a; pointer-events: none; text-anchor: middle; text-shadow: 0 1px 2px rgba(0,0,0,0.9); }
+    .route-line { fill: none; stroke: #38bdf8; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 10 8; animation: dashMove 0.8s linear infinite; }
     @keyframes dashMove { to { stroke-dashoffset: -18; } }
+    #walker { font-size: 24px; transition: all 0.35s linear; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.6)); pointer-events: none; }
 
-    .voice-assistant {
-      position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
-      width: 94%; max-width: 580px; background: rgba(255, 255, 255, 0.98);
-      border-radius: 20px; padding: 14px 16px; box-shadow: 0 10px 35px rgba(0,0,0,0.4);
-      z-index: 100; border: 1px solid #cbd5e1; color: #1e293b;
-    }
-    .quick-chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; }
-    .chip-btn {
-      background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;
-      border-radius: 16px; padding: 5px 11px; font-size: 12px; font-weight: 600;
-      white-space: nowrap; cursor: pointer;
-    }
-    .chip-btn:hover { background: #2563eb; color: #fff; }
-    .chat-display { font-size: 13px; color: #1e293b; margin-bottom: 10px; min-height: 48px; max-height: 125px; overflow-y: auto; line-height: 1.45; }
-    .user-msg { color: #2563eb; font-weight: 600; margin-bottom: 3px; font-size: 12px; }
-    .bot-msg { background: #f8fafc; border-left: 3.5px solid #1e3a8a; padding: 7px 10px; border-radius: 0 8px 8px 0; }
-    .step-list { margin-top: 4px; padding-left: 18px; }
-    .audio-controls { display: flex; gap: 8px; margin-top: 6px; }
-    .mini-btn { background: #e2e8f0; border: none; border-radius: 6px; padding: 4px 9px; font-size: 11px; font-weight: 600; cursor: pointer; }
-    .controls { display: flex; gap: 8px; }
-    #text-input { flex: 1; padding: 9px 12px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 13.5px; outline: none; }
-    .action-btn { border: none; border-radius: 10px; padding: 9px 14px; font-size: 13.5px; font-weight: 600; cursor: pointer; color: #fff; }
+    .voice-helper { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); width: 94%; max-width: 540px; background: rgba(255,255,255,0.97); border-radius: 18px; padding: 11px 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); z-index: 200; border: 1px solid #cbd5e1; color: #1e293b; }
+    .chat-display { font-size: 12.5px; color: #1e293b; margin-bottom: 8px; max-height: 95px; overflow-y: auto; line-height: 1.4; }
+    .bot-msg { background: #f1f5f9; border-left: 3.5px solid #2563eb; padding: 6px 10px; border-radius: 0 8px 8px 0; }
+    .controls { display: flex; gap: 6px; }
+    #text-input { flex: 1; padding: 8px 11px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 13px; outline: none; }
+    .action-btn { border: none; border-radius: 10px; padding: 8px 13px; font-size: 12.5px; font-weight: 700; cursor: pointer; color: #fff; }
     #send-btn { background: #1e3a8a; }
     #mic-btn { background: #dc2626; }
     #mic-btn.listening { background: #16a34a; }
+    .mini-btn { background: #e2e8f0; border: none; border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 700; cursor: pointer; margin-top: 4px; margin-right: 5px; }
   </style>
 </head>
 <body>
-
   <div class="top-bar">
-    <span>🏛️ UM FSSS 3D Campus Map</span>
-    <a class="mappedin-btn" href="https://mappedin.com" target="_blank" rel="noopener">↗ Open Mappedin 3D</a>
+    <span>🏛️ UM FSSS 3D</span>
+    <button type="button" class="floor-btn active" data-floor="G">Aras G</button>
+    <button type="button" class="floor-btn" data-floor="1">Aras 1</button>
+    <button type="button" class="floor-btn" data-floor="2">Aras 2</button>
+    <span>|</span>
+    <button type="button" class="lang-btn active" id="btn-en">🇬🇧 English</button>
+    <button type="button" class="lang-btn" id="btn-ms">🇲🇾 Bahasa Malaysia</button>
+    <select id="voice-select"><option value="">🔊 Auto Voice</option></select>
   </div>
-
-  <div class="map-viewport">
-    <svg id="campus-3d" viewBox="0 0 800 440">
-      <polygon points="60,80 740,80 770,380 30,380" fill="#1e293b" stroke="#334155" stroke-width="3" rx="16" />
-      <path d="M 150,230 L 660,230 M 320,120 L 320,330 M 520,120 L 520,330" stroke="#475569" stroke-width="14" stroke-linecap="round" />
-
-      <g class="bldg" onclick="askBot('Anjung Ilmu')">
-        <ellipse cx="120" cy="240" rx="58" ry="46" fill="#4f46e5" />
-        <ellipse cx="120" cy="226" rx="58" ry="46" fill="#6366f1" stroke="#a5b4fc" stroke-width="2" />
-        <text x="120" y="223" class="bldg-label">I 08 Anjung Ilmu</text>
-        <text x="120" y="236" class="bldg-sub">Media / Auditorium</text>
-      </g>
-
-      <g class="bldg" onclick="askBot('DKF')">
-        <rect x="220" y="105" width="90" height="55" rx="8" fill="#0284c7" />
-        <rect x="220" y="95" width="90" height="55" rx="8" fill="#0ea5e9" stroke="#bae6fd" stroke-width="2" />
-        <text x="265" y="120" class="bldg-label">I 03 DKF</text>
-        <text x="265" y="133" class="bldg-sub">Lecture Hall F</text>
-      </g>
-
-      <g class="bldg" onclick="askBot('Siswarama')">
-        <rect x="340" y="100" width="230" height="58" rx="8" fill="#0d9488" />
-        <rect x="340" y="90" width="230" height="58" rx="8" fill="#14b8a6" stroke="#99f6e4" stroke-width="2" />
-        <text x="455" y="116" class="bldg-label">I 01 Bangunan Siswarama</text>
-        <text x="455" y="130" class="bldg-sub">East Asian / Computer Lab</text>
-      </g>
-
-      <g class="bldg" onclick="askBot('Bilik Cube')">
-        <rect x="210" y="265" width="115" height="75" rx="8" fill="#7c3aed" />
-        <rect x="210" y="253" width="115" height="75" rx="8" fill="#8b5cf6" stroke="#ddd6fe" stroke-width="2" />
-        <text x="267" y="286" class="bldg-label">I 04 3 Dimensi</text>
-        <text x="267" y="300" class="bldg-sub">Chinese / Bilik Cube</text>
-      </g>
-
-      <g class="bldg" onclick="askBot('Sejarah')">
-        <rect x="365" y="190" width="125" height="55" rx="8" fill="#d97706" />
-        <rect x="365" y="180" width="125" height="55" rx="8" fill="#f59e0b" stroke="#fde68a" stroke-width="2" />
-        <text x="427" y="205" class="bldg-label">I 02 Sejarah</text>
-        <text x="427" y="218" class="bldg-sub">History Dept</text>
-      </g>
-
-      <g class="bldg" onclick="askBot('Dean Office')">
-        <rect x="355" y="285" width="195" height="65" rx="8" fill="#dc2626" />
-        <rect x="355" y="273" width="195" height="65" rx="8" fill="#ef4444" stroke="#fecaca" stroke-width="2" />
-        <text x="452" y="302" class="bldg-label">I 05 Pentadbiran</text>
-        <text x="452" y="316" class="bldg-sub">Dean's Office / Geography</text>
-      </g>
-
-      <g class="bldg" onclick="askBot('DKD')">
-        <rect x="535" y="185" width="95" height="55" rx="8" fill="#0284c7" />
-        <rect x="535" y="175" width="95" height="55" rx="8" fill="#0ea5e9" stroke="#bae6fd" stroke-width="2" />
-        <text x="582" y="200" class="bldg-label">I 06 DKD/E</text>
-        <text x="582" y="213" class="bldg-sub">Lecture Halls</text>
-      </g>
-
-      <g class="bldg" onclick="askBot('DKA')">
-        <rect x="645" y="150" width="85" height="150" rx="8" fill="#2563eb" />
-        <rect x="645" y="138" width="85" height="150" rx="8" fill="#3b82f6" stroke="#bfdbfe" stroke-width="2" />
-        <text x="687" y="210" class="bldg-label">I 07</text>
-        <text x="687" y="224" class="bldg-sub">DKA / B / C</text>
-      </g>
-
-      <path id="nav-path" class="route-line" d="M 452,355 L 452,230 L 178,230" />
-      <circle cx="452" cy="355" r="7" fill="#22c55e" stroke="#fff" stroke-width="2" />
-      <circle id="dest-pin" cx="178" cy="230" r="8" fill="#f43f5e" stroke="#fff" stroke-width="2" />
-    </svg>
-  </div>
-
-  <div class="voice-assistant">
-    <div class="quick-chips">
-      <button type="button" class="chip-btn" onclick="askBot('Dean Office')">🏛️ Dean's Office</button>
-      <button type="button" class="chip-btn" onclick="askBot('Chinese Studies')">🇨🇳 Chinese Studies</button>
-      <button type="button" class="chip-btn" onclick="askBot('Makmal Komputer')">💻 Computer Lab</button>
-      <button type="button" class="chip-btn" onclick="askBot('Anjung Ilmu')">🎬 Anjung Ilmu</button>
-      <button type="button" class="chip-btn" onclick="askBot('DKA')">🎓 DKA / DKB / DKC</button>
-      <button type="button" class="chip-btn" onclick="askBot('Bilik Cube')">🧊 Bilik Cube</button>
+  <div class="route-panel">
+    <h4>🧭 Route Planner (Laluan)</h4>
+    <div class="sel-group">
+      <label>🟢 FROM (Dari):</label>
+      <select id="from-select">
+        <option value="anjung">Anjung Ilmu</option>
+        <option value="citra">Bangunan Citra</option>
+        <option value="siswarama">Bangunan Siswarama (UM Clinic / Sakura)</option>
+        <option value="dkf">Dewan Kuliah F (DKF)</option>
+        <option value="cube">3 Dimensi & Bilik Cube</option>
+        <option value="dke">Dewan Kuliah E (DKE)</option>
+        <option value="dka">Dewan Kuliah A (DKA)</option>
+        <option value="admin">Bangunan Pentadbiran</option>
+      </select>
     </div>
+    <div class="sel-group">
+      <label>🔴 TO (Ke):</label>
+      <select id="to-select">
+        <option value="siswarama" selected>Bangunan Siswarama (UM Clinic / Sakura)</option>
+        <option value="admin">Bangunan Pentadbiran (Pejabat Dekan)</option>
+        <option value="cube">3 Dimensi & Bilik Cube</option>
+        <option value="anjung">Anjung Ilmu</option>
+        <option value="citra">Bangunan Citra</option>
+        <option value="dkf">Dewan Kuliah F (DKF)</option>
+        <option value="dke">Dewan Kuliah E (DKE)</option>
+        <option value="dka">Dewan Kuliah A (DKA)</option>
+      </select>
+    </div>
+    <button type="button" class="go-btn" id="walk-btn">🚶 Start Walking Guide</button>
+    <div class="drag-hint">🖱️ Drag map to rotate 3D view</div>
+  </div>
 
+  <div class="scene-container" id="scene">
+    <div class="map-3d-board" id="board3d">
+      <svg id="campus-svg" viewBox="0 0 880 430">
+        <polygon points="30,55 850,55 870,410 10,410" fill="#0f172a" />
+        <polygon points="30,45 850,45 870,400 10,400" fill="#1e293b" stroke="#38bdf8" stroke-width="2" />
+        <path d="M 190,260 L 340,215 L 490,145 L 610,145 M 445,205 L 445,280 L 660,280 M 610,145 L 610,220 L 760,220" stroke="#475569" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+
+        <g class="bldg" data-id="anjung">
+          <polygon points="75,266 220,241 230,271 130,291 235,311 225,341 75,311" fill="#3730a3" />
+          <polygon points="75,250 220,225 230,255 130,275 235,295 225,325 75,295" fill="#6366f1" stroke="#c7d2fe" stroke-width="2" />
+          <text x="145" y="274" class="bldg-title">ANJUNG ILMU</text>
+          <text x="145" y="287" class="bldg-room" id="lbl-anjung">Auditorium / Media</text>
+        </g>
+
+        <g class="bldg" data-id="citra">
+          <polygon points="275,222 390,199 398,232 283,255" fill="#155e75" />
+          <polygon points="275,206 390,183 398,216 283,239" fill="#06b6d4" stroke="#cffafe" stroke-width="2" />
+          <text x="336" y="211" class="bldg-title">Bangunan CITRA</text>
+          <text x="336" y="223" class="bldg-room" id="lbl-citra">Bilik Kuliah Citra</text>
+        </g>
+
+        <g class="bldg" data-id="siswarama">
+          <polygon points="445,112 645,85 653,132 453,159" fill="#115e59" />
+          <polygon points="445,95 645,68 653,115 453,142" fill="#14b8a6" stroke="#ccfbf1" stroke-width="2" />
+          <text x="550" y="104" class="bldg-title">BANGUNAN SISWARAMA</text>
+          <text x="550" y="118" class="bldg-room" id="lbl-siswarama">UM Clinic (Ground Floor)</text>
+        </g>
+
+        <g class="bldg" data-id="dkf">
+          <rect x="445" y="166" width="130" height="44" rx="6" fill="#075985" />
+          <rect x="445" y="151" width="130" height="44" rx="6" fill="#0ea5e9" stroke="#e0f2fe" stroke-width="2" />
+          <text x="510" y="172" class="bldg-title">Dewan Kuliah F (DKF)</text>
+          <text x="510" y="185" class="bldg-room" id="lbl-dkf">Main Lecture Hall F</text>
+        </g>
+
+        <g class="bldg" data-id="cube">
+          <polygon points="430,231 510,231 545,361 515,368 490,281 430,281" fill="#5b21b6" />
+          <polygon points="430,215 510,215 545,345 515,352 490,265 430,265" fill="#8b5cf6" stroke="#ede9fe" stroke-width="2" />
+          <text x="475" y="242" class="bldg-title">3 Dimensi & Cube</text>
+          <text x="475" y="255" class="bldg-room" id="lbl-cube">Bilik Cube / Lobby</text>
+        </g>
+
+        <g class="bldg" data-id="dke">
+          <rect x="615" y="191" width="120" height="42" rx="6" fill="#92400e" />
+          <rect x="615" y="176" width="120" height="42" rx="6" fill="#f59e0b" stroke="#fef3c7" stroke-width="2" />
+          <text x="675" y="196" class="bldg-title">Dewan Kuliah E</text>
+          <text x="675" y="209" class="bldg-room" id="lbl-dke">DKE / DKD</text>
+        </g>
+
+        <g class="bldg" data-id="dka">
+          <rect x="748" y="188" width="105" height="54" rx="6" fill="#1e40af" />
+          <rect x="748" y="173" width="105" height="54" rx="6" fill="#3b82f6" stroke="#dbeafe" stroke-width="2" />
+          <text x="800" y="198" class="bldg-title">Dewan Kuliah A</text>
+          <text x="800" y="211" class="bldg-room" id="lbl-dka">DKA / DKB / DKC</text>
+        </g>
+
+        <g class="bldg" data-id="admin">
+          <rect x="645" y="281" width="190" height="56" rx="6" fill="#991b1b" />
+          <rect x="645" y="266" width="190" height="56" rx="6" fill="#ef4444" stroke="#fee2e2" stroke-width="2" />
+          <text x="740" y="292" class="bldg-title">Bangunan Pentadbiran</text>
+          <text x="740" y="306" class="bldg-room" id="lbl-admin">Pejabat Dekan / Geografi</text>
+        </g>
+
+        <polyline id="nav-poly" class="route-line" points="190,260 340,215 490,145 550,125" />
+        <circle id="start-pin" cx="190" cy="260" r="7" fill="#22c55e" stroke="#fff" stroke-width="2" />
+        <circle id="end-pin" cx="550" cy="125" r="8" fill="#f43f5e" stroke="#fff" stroke-width="2" />
+        <text id="walker" x="190" y="260" text-anchor="middle" dominant-baseline="central">🚶</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="voice-helper">
     <div class="chat-display" id="chat-display">
-      <div class="bot-msg">👋 <b>Tap any 3D building above</b> or ask below! The blue route line and voice guide will lead you there.</div>
+      <div class="bot-msg" id="init-msg">⏳ Loading...</div>
     </div>
-
     <div class="controls">
-      <input type="text" id="text-input" placeholder="Ask e.g. 'Bilik Cube' or 'DKA'..." onkeydown="if(event.key==='Enter') sendInput()" />
-      <button type="button" class="action-btn" id="send-btn" onclick="sendInput()">Ask</button>
-      <button type="button" class="action-btn" id="mic-btn" onclick="startVoice()">🎤 Speak</button>
+      <input type="text" id="text-input" placeholder="Voice helper: Ask 'UM Clinic', 'Sakura', 'Pustaka AY'..." />
+      <button type="button" class="action-btn" id="send-btn">Ask</button>
+      <button type="button" class="action-btn" id="mic-btn">🎤 Speak</button>
     </div>
   </div>
-
   <script>
-    var lastSpoken = "";
+    var currentLang = "en", lastSpoken = "", allVoices = [], walkTimer = null;
+
+    var rotX = 48, rotZ = -12, isDragging = false, lastX = 0, lastY = 0;
+    var scene = document.getElementById("scene"), board = document.getElementById("board3d");
+    scene.addEventListener("pointerdown", function(e) {
+      if (e.target.closest(".bldg")) return;
+      isDragging = true; lastX = e.clientX; lastY = e.clientY;
+    });
+    window.addEventListener("pointermove", function(e) {
+      if (!isDragging) return;
+      rotZ += (e.clientX - lastX) * 0.28;
+      rotX = Math.max(15, Math.min(72, rotX - (e.clientY - lastY) * 0.28));
+      board.style.transform = "rotateX(" + rotX + "deg) rotateZ(" + rotZ + "deg)";
+      lastX = e.clientX; lastY = e.clientY;
+    });
+    window.addEventListener("pointerup", function() { isDragging = false; });
+
+    var floorLabels = {
+      G: { anjung: "Auditorium / Media", citra: "Bilik Kuliah Citra", siswarama: "UM Clinic (Ground Floor)", dkf: "Main Lecture Hall F", cube: "Bilik Cube / Lobby", dke: "DKE / DKD", dka: "DKA / DKB / DKC", admin: "Kaunter / Pejabat Am" },
+      1: { anjung: "Jabatan Antropologi", citra: "Bilik Seminar Citra", siswarama: "Asia Timur / Pustaka AY / Sakura / Tandas", dkf: "DKF Aras Atas", cube: "Jabatan Pengajian Cina", dke: "Bilik Tutorial E", dka: "Bilik Tutorial A-C", admin: "Pejabat Dekan" },
+      2: { anjung: "Antarabangsa / Gender", citra: "Makmal Bahasa Citra", siswarama: "Tandas Perempuan (Female Toilet)", dkf: "Bilik Projektor DKF", cube: "India & Asia Tenggara", dke: "Bilik Pensyarah E", dka: "Bilik Pensyarah A-C", admin: "Geografi & Inggeris" }
+    };
+    function setFloor(f) {
+      var d = floorLabels[f]; if (!d) return;
+      document.getElementById("lbl-anjung").textContent = d.anjung;
+      document.getElementById("lbl-citra").textContent = d.citra;
+      document.getElementById("lbl-siswarama").textContent = d.siswarama;
+      document.getElementById("lbl-dkf").textContent = d.dkf;
+      document.getElementById("lbl-cube").textContent = d.cube;
+      document.getElementById("lbl-dke").textContent = d.dke;
+      document.getElementById("lbl-dka").textContent = d.dka;
+      document.getElementById("lbl-admin").textContent = d.admin;
+    }
+
+    function loadVoices() {
+      if (!("speechSynthesis" in window)) return;
+      allVoices = window.speechSynthesis.getVoices();
+      var sel = document.getElementById("voice-select");
+      if (!sel || !allVoices.length) return;
+      sel.innerHTML = '<option value="">🔊 Auto Voice</option>';
+      allVoices.forEach(function(v, i) {
+        var lg = v.lang.toLowerCase();
+        if (lg.includes("ms") || lg.includes("my") || lg.includes("en")) {
+          var o = document.createElement("option");
+          o.value = i;
+          o.textContent = v.name.replace("Microsoft ", "").replace("Google ", "") + (lg.includes("ms") || lg.includes("my") ? " (Bahasa Malaysia)" : " (" + v.lang + ")");
+          sel.appendChild(o);
+        }
+      });
+    }
+    if ("speechSynthesis" in window) { loadVoices(); window.speechSynthesis.onvoiceschanged = loadVoices; }
 
     function speakText(t) {
       lastSpoken = t;
       if ("speechSynthesis" in window) {
         window.speechSynthesis.cancel();
         var m = new SpeechSynthesisUtterance(t);
-        m.lang = "en-US";
-        m.rate = 0.98;
+        m.lang = currentLang === "ms" ? "ms-MY" : "en-US";
+        var idx = document.getElementById("voice-select").value;
+        if (idx !== "" && allVoices.at(Number(idx))) m.voice = allVoices.at(Number(idx));
         window.speechSynthesis.speak(m);
       }
     }
-    function stopText() { if ("speechSynthesis" in window) window.speechSynthesis.cancel(); }
-    function replayText() { if (lastSpoken) speakText(lastSpoken); }
+    var nodes = {
+      anjung: { x: 190, y: 260, hx: 260, hy: 238, name: "Bangunan Anjung Ilmu", descEn: "Auditorium, Media, Anthropology & International Studies.", descMs: "Menempatkan Auditorium, Pengajian Media, Antropologi & Antarabangsa." },
+      citra: { x: 336, y: 215, hx: 340, hy: 215, name: "Bangunan CITRA", descEn: "Connects Anjung Ilmu to main FSSS complex.", descMs: "Menghubungkan Anjung Ilmu ke kompleks utama FSSS." },
+      siswarama: { x: 550, y: 125, hx: 490, hy: 145, name: "Bangunan Siswarama", descEn: "Ground Floor: UM Clinic | Aras 1: Office Pengajian Asia Timur, Pustaka AY FSSS, Auditorium FSSS, Kelas Sakura & Toilet | Aras 2: Female Toilet.", descMs: "Aras Bawah (First Floor): UM Clinic | Aras 1: Pejabat Pengajian Asia Timur, Pustaka AY FSSS, Auditorium FSSS, Kelas Sakura & Tandas | Aras 2: Tandas Perempuan." },
+      dkf: { x: 510, y: 170, hx: 490, hy: 145, name: "Dewan Kuliah F (DKF)", descEn: "Main lecture hall below Bangunan Siswarama.", descMs: "Dewan kuliah utama di sebelah selatan Bangunan Siswarama." },
+      cube: { x: 475, y: 245, hx: 445, hy: 215, name: "Bangunan 3 Dimensi & Bilik Cube", descEn: "Houses Chinese, Indian, Southeast Asian Studies & Bilik Cube.", descMs: "Menempatkan Pengajian Cina, India, Asia Tenggara & Bilik Cube." },
+      dke: { x: 615, y: 197, hx: 610, hy: 145, name: "Dewan Kuliah E & D (DKE/DKD)", descEn: "Center-east lecture halls.", descMs: "Dewan kuliah di bahagian tengah timur." },
+      dka: { x: 748, y: 200, hx: 610, hy: 220, name: "Dewan Kuliah A, B & C (DKA)", descEn: "Far-east wing lecture halls.", descMs: "Dewan kuliah di sayap paling timur." },
+      admin: { x: 660, y: 280, hx: 445, hy: 280, name: "Bangunan Pentadbiran", descEn: "Dean's Office (Pejabat Dekan), Geography & English.", descMs: "Menempatkan Pejabat Dekan, Jabatan Geografi & Inggeris." }
+    };
 
-    function updateMapRoute(pathD, destX, destY) {
-      var p = document.getElementById("nav-path");
-      var d = document.getElementById("dest-pin");
-      if (p) p.setAttribute("d", pathD);
-      if (d) { d.setAttribute("cx", destX); d.setAttribute("cy", destY); }
+    function animateWalker(x1, y1, x2, y2, x3, y3, x4, y4, x5, y5) {
+      if (walkTimer) clearInterval(walkTimer);
+      var walker = document.getElementById("walker");
+      var xs = new Array(x1, x2, x3, x4, x5);
+      var ys = new Array(y1, y2, y3, y4, y5);
+      var step = 0;
+      walker.setAttribute("x", xs.at(0));
+      walker.setAttribute("y", ys.at(0));
+      walkTimer = setInterval(function() {
+        step++;
+        if (step >= 5) step = 0;
+        walker.setAttribute("x", xs.at(step));
+        walker.setAttribute("y", ys.at(step));
+      }, 650);
     }
 
-    function getLoc(q) {
-      if (q.includes("pentadbiran") || q.includes("admin") || q.includes("dean") || q.includes("dekan") || q.includes("i05") || q.includes("geography") || q.includes("english"))
+    function navigateFromTo(fromKey, toKey, customTitle) {
+      var a = nodes[fromKey] || nodes.anjung;
+      var b = nodes[toKey] || nodes.siswarama;
+      var polyStr = a.x + "," + a.y + " " + a.hx + "," + a.hy + " 445,205 " + b.hx + "," + b.hy + " " + b.x + "," + b.y;
+      document.getElementById("nav-poly").setAttribute("points", polyStr);
+      document.getElementById("start-pin").setAttribute("cx", a.x);
+      document.getElementById("start-pin").setAttribute("cy", a.y);
+      document.getElementById("end-pin").setAttribute("cx", b.x);
+      document.getElementById("end-pin").setAttribute("cy", b.y);
+      animateWalker(a.x, a.y, a.hx, a.hy, 445, 205, b.hx, b.hy, b.x, b.y);
+
+      var m = currentLang === "ms";
+      var title = customTitle || b.name;
+      var info = m ? b.descMs : b.descEn;
+      var routeText = m ? ("Dari " + a.name + " ke " + title + ". " + info) : ("From " + a.name + " to " + title + ". " + info);
+      var box = document.getElementById("chat-display");
+      box.innerHTML = '<div class="bot-msg"><div>🚶 <b>' + (m ? 'Laluan' : 'Route') + ':</b> ' + a.name + ' ➔ <b>' + title + '</b></div><div style="margin-top:3px;">' + info + '</div><div><button type="button" class="mini-btn" id="rep-btn">🔊 Replay</button><button type="button" class="mini-btn" id="stp-btn">⏹️ Stop</button></div></div>';
+      document.getElementById("rep-btn").onclick = function() { speakText(lastSpoken); };
+      document.getElementById("stp-btn").onclick = function() { if ("speechSynthesis" in window) window.speechSynthesis.cancel(); };
+      speakText(routeText);
+    }
+
+    function handleQuery(q) {
+      if (!q || !q.trim()) return;
+      var s = q.toLowerCase(), fromKey = document.getElementById("from-select").value;
+      if (s.includes("clinic") || s.includes("klinik") || s.includes("siswarama") || s.includes("asia timur") || s.includes("pustaka") || s.includes("auditorium fsss") || s.includes("sakura") || s.includes("tandas") || s.includes("toilet")) {
+        document.getElementById("to-select").value = "siswarama";
+        navigateFromTo(fromKey, "siswarama", "Bangunan Siswarama (" + q + ")");
+      } else if (s.includes("pentadbiran") || s.includes("dean") || s.includes("dekan") || s.includes("geografi") || s.includes("english")) {
+        document.getElementById("to-select").value = "admin";
+        navigateFromTo(fromKey, "admin");
+      } else if (s.includes("cube") || s.includes("dimensi") || s.includes("cina") || s.includes("chinese") || s.includes("india")) {
+        document.getElementById("to-select").value = "cube";
+        navigateFromTo(fromKey, "cube");
+      } else if (s.includes("anjung") || s.includes("media") || s.includes("antropologi")) {
+        document.getElementById("to-select").value = "anjung";
+        navigateFromTo(fromKey, "anjung");
+      } else if (s.includes("citra")) {
+        document.getElementById("to-select").value = "citra";
+        navigateFromTo(fromKey, "citra");
+      } else if (s.includes("dkf")) {
+        document.getElementById("to-select").value = "dkf";
+        navigateFromTo(fromKey, "dkf");
+      } else if (s.includes("dke") || s.includes("dkd")) {
+        document.getElementById("to-select").value = "dke";
+        navigateFromTo(fromKey, "dke");
+      } else if (s.includes("dka") || s.includes("dkb") || s.includes("dkc")) {
+        document.getElementById("to-select").value = "dka";
+        navigateFromTo(fromKey, "dka");
+      } else {
+        var fb = currentLang === "ms" ? "Cuba tanya UM Clinic, Sakura, Pustaka AY, Pejabat Dekan, atau Bilik Cube." : "Try asking for UM Clinic, Sakura, Pustaka AY, Dean's Office, or Bilik Cube.";
+        document.getElementById("chat-display").innerHTML = '<div class="bot-msg">🤔 ' + fb + '</div>';
+        speakText(fb);
+      }
+    }
+
+    document.getElementById("walk-btn").addEventListener("click", function() {
+      navigateFromTo(document.getElementById("from-select").value, document.getElementById("to-select").value);
+    });
+    document.querySelectorAll(".bldg").forEach(function(b) {
+      b.addEventListener("click", function() {
+        var id = b.getAttribute("data-id");
+        document.getElementById("to-select").value = id;
+        navigateFromTo(document.getElementById("from-select").value, id);
+      });
+    });
+    document.querySelectorAll(".floor-btn").forEach(function(b) {
+      b.addEventListener("click", function() {
+        document.querySelectorAll(".floor-btn").forEach(function(x) { x.classList.remove("active"); });
+        b.classList.add("active");
+        setFloor(b.getAttribute("data-floor"));
+      });
+    });
+    document.getElementById("btn-en").addEventListener("click", function() { currentLang = "en"; this.classList.add("active"); document.getElementById("btn-ms").classList.remove("active"); });
+    document.getElementById("btn-ms").addEventListener("click", function() { currentLang = "ms"; this.classList.add("active"); document.getElementById("btn-en").classList.remove("active"); });
+    document.getElementById("send-btn").addEventListener("click", function() { var i = document.getElementById("text-input"), v = i.value; i.value = ""; handleQuery(v); });
+    document.getElementById("text-input").addEventListener("keydown", function(e) { if (e.key === "Enter") { var v = this.value; this.value = ""; handleQuery(v); } });
+    document.getElementById("mic-btn").addEventListener("click", function() {
+      var b = this, SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) { alert("Please use Google Chrome."); return; }
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+      var r = new SR(); r.lang = currentLang === "ms" ? "ms-MY" : "en-US";
+      r.onstart = function() { b.classList.add("listening"); b.textContent = "🛑 Listening..."; };
+      r.onresult = function(e) { handleQuery(e.results.item(0).item(0).transcript); };
+      r.onend = function() { b.classList.remove("listening"); b.textContent = "🎤 Speak"; };
+      r.start();
+    });
+    animateWalker(190, 260, 340, 215, 445, 205, 490, 145, 550, 125);
+    document.getElementById("init-msg").innerHTML = "👋 <b>System Ready!</b> Drag map to rotate 3D, pick <b>From / To</b> on the left, or use voice helper!";
+  </script>
+</body>
+</html>
