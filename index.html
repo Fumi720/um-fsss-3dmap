@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>UM FSSS 3D Smart Campus Map & Voice Guide</title>
+  <title>UM FSSS 3D Smart Campus Map & Voice Navigator</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
     body, html { width: 100%; height: 100%; overflow: hidden; background: #0f172a; }
 
-    /* Fullscreen 3D Map */
+    /* Fullscreen Embedded Mappedin 3D Map */
     #map-frame {
       position: fixed;
       inset: 0;
@@ -18,7 +18,7 @@
       z-index: 1;
     }
 
-    /* Top Header */
+    /* Top Title Bar */
     .header-badge {
       position: fixed;
       top: 14px;
@@ -33,22 +33,10 @@
       color: #1e3a8a;
       font-size: 13px;
       white-space: nowrap;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      pointer-events: none;
     }
 
-    .fallback-link {
-      background: #10b981;
-      color: #fff;
-      text-decoration: none;
-      padding: 4px 10px;
-      border-radius: 14px;
-      font-size: 11.5px;
-      font-weight: 700;
-    }
-
-    /* Floating Voice Assistant */
+    /* Floating Voice Assistant Panel */
     .voice-assistant {
       position: fixed;
       bottom: 18px;
@@ -79,7 +67,7 @@
       color: #1d4ed8;
       border: 1px solid #bfdbfe;
       border-radius: 16px;
-      padding: 6px 12px;
+      padding: 5px 11px;
       font-size: 12px;
       font-weight: 600;
       white-space: nowrap;
@@ -91,8 +79,8 @@
       font-size: 13px;
       color: #1e293b;
       margin-bottom: 10px;
-      min-height: 50px;
-      max-height: 145px;
+      min-height: 48px;
+      max-height: 140px;
       overflow-y: auto;
       line-height: 1.5;
     }
@@ -113,13 +101,10 @@
 </head>
 <body>
 
-  <div class="header-badge">
-    <span>🏛️ UM FSSS 3D Smart Campus Map</span>
-    <a class="fallback-link" href="https://mappedin.com" target="_blank" rel="noopener">↗ Fullscreen</a>
-  </div>
+  <div class="header-badge">🏛️ UM FSSS 3D Interactive Map & AI Voice Navigator</div>
 
-  <!-- Embedded 3D Map (Requires Mappedin status set to LIVE) -->
-  <iframe id="map-frame" src="https://mappedin.com" allow="geolocation; microphone"></iframe>
+  <!-- Live Embedded Mappedin 3D Map -->
+  <iframe id="map-frame" src="https://mappedin.com" allow="geolocation; microphone; clipboard-write"></iframe>
 
   <!-- Smart Voice & Text Navigator -->
   <div class="voice-assistant">
@@ -133,11 +118,11 @@
     </div>
 
     <div class="chat-display" id="chat-display">
-      <div class="bot-msg">👋 <b>Welcome to FSSS Smart Navigator!</b> Tap a quick button above, type a room, or click <b>🎤 Speak</b> for step-by-step voice directions.</div>
+      <div class="bot-msg">👋 <b>Welcome to FSSS Smart Navigator!</b> Tap a quick button, type a location, or click <b>🎤 Speak</b> for voice directions.</div>
     </div>
 
     <div class="controls">
-      <input type="text" id="text-input" placeholder="Type e.g. 'Bilik Cube' or 'DKA'..." onkeydown="if(event.key==='Enter') sendInput()" />
+      <input type="text" id="text-input" placeholder="Ask e.g. 'Bilik Cube' or 'DKA'..." onkeydown="if(event.key==='Enter') sendInput()" />
       <button type="button" class="action-btn" id="send-btn" onclick="sendInput()">Ask</button>
       <button type="button" class="action-btn" id="mic-btn" onclick="startVoice()">🎤 Speak</button>
     </div>
@@ -194,3 +179,14 @@
       if (info) {
         var v = "Navigating to " + info.n + ". " + info.d + " Step 1: " + info.s1 + " Step 2: " + info.s2 + " Step 3: " + info.s3;
         var li = "<li><b>Step 1:</b> " + info.s1 + "</li><li><b>Step 2:</b> " + info.s2 + "</li><li><b>Step 3:</b> " + info.s3 + "</li>";
+        box.innerHTML = '<div class="user-msg">🗣️ You: "' + q + '"</div><div class="bot-msg"><div>📍 <b>' + info.n + '</b></div><div>' + info.d + '</div><ol class="step-list">' + li + '</ol><div class="audio-controls"><button type="button" class="mini-btn" onclick="replayText()">🔊 Replay</button><button type="button" class="mini-btn" onclick="stopText()">⏹️ Stop</button></div></div>';
+        speakText(v);
+      } else {
+        var fb = "Try asking for Dean's Office, Chinese Studies, Computer Lab, Anjung Ilmu, Bilik Cube, or DKA.";
+        box.innerHTML = '<div class="user-msg">🗣️ You: "' + q + '"</div><div class="bot-msg">🤔 ' + fb + '</div>';
+        speakText(fb);
+      }
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function sendInput() {
